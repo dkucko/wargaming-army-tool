@@ -33,6 +33,20 @@ class Army(django_models.Model):
     point_cost = django_models.IntegerField(default=0)
     might = django_models.IntegerField(default=0)
 
+    def get_total_points(self):
+        cost = 0
+        for unit in self.unit_set().all():
+            cost += unit.get_total_points()
+
+        return cost
+
+    def get_total_might(self):
+        might = 0
+        for unit in self.unit_set().all():
+            might += unit.might
+
+        return might
+
     def __str__(self):
         return self.name
 
@@ -52,6 +66,13 @@ class Unit(django_models.Model):
     armies = django_models.ManyToManyField(Army)
     point_cost = django_models.IntegerField(default=0)
 
+    def get_total_points(self):
+        cost = 0
+        for model in self.model_set.all():
+            cost += model.get_total_points()
+
+        return cost
+
     def __str__(self):
         return self.name
 
@@ -68,6 +89,14 @@ class Model(django_models.Model):
     name = django_models.CharField(max_length=100)
     model_type = django_models.ForeignKey(ModelType, on_delete=django_models.DO_NOTHING)
     units = django_models.ManyToManyField(Unit)
+    point_cost = django_models.IntegerField(default=0)
+
+    def get_total_points(self):
+        cost = self.model_type.point_cost
+        for equipment in self.equipment_set.all():
+            cost += equipment.point_cost
+
+        return cost
 
     def __str__(self):
         return self.name
