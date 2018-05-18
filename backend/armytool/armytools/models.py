@@ -35,8 +35,8 @@ class Army(django_models.Model):
 
     def get_total_points(self):
         cost = 0
-        for unit in self.unit_set.all():
-            cost += unit.get_total_points()
+        for contingent in self.contingent_set.all():
+            cost += contingent.get_total_points()
 
         return cost
 
@@ -67,11 +67,50 @@ class PlayerArmy(django_models.Model):
         return str(self.player) + ': ' + str(self.army)
 
 
+class ContingentType(django_models.Model):
+    name = django_models.CharField(max_length=200)
+
+
+class Contingent(django_models.Model):
+    name = django_models.CharField(max_length=200)
+    command_point_bonus = django_models.IntegerField(default=0)
+    armies = django_models.ManyToManyField(Army)
+    contingent_type = django_models.ForeignKey(ContingentType, on_delete=django_models.DO_NOTHING)
+
+    def get_total_points(self):
+        cost = 0
+        for unit in self.unit_set.all():
+            cost += unit.get_total_points()
+
+        return cost
+
+    def __str__(self):
+        return self.name
+
+
+class UnitType(django_models.Model):
+    name = django_models.CharField(max_length=200)
+
+    def __str__(self):
+        return self.name
+
+
+class UnitTypeMinMax(django_models.Model):
+    unit_type = django_models.ForeignKey(UnitType, on_delete=django_models.DO_NOTHING)
+    min = django_models.IntegerField(default=0)
+    max = django_models.IntegerField(default=0)
+    contingent_types = django_models.ManyToManyField(ContingentType)
+
+    def __str__(self):
+        return f'{str(self.unit_type): {self.min}-{self.max}}'
+
+
 class Unit(django_models.Model):
     name = django_models.CharField(max_length=100)
     might = django_models.IntegerField(default=0)
-    armies = django_models.ManyToManyField(Army)
+    contingents = django_models.ManyToManyField(Contingent)
     point_cost = django_models.IntegerField(default=0)
+    unity_type = django_models.ForeignKey(UnitType, on_delete=django_models.DO_NOTHING)
 
     def get_total_points(self):
         cost = 0
