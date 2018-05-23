@@ -110,7 +110,7 @@ class Unit(django_models.Model):
     might = django_models.IntegerField(default=0)
     contingents = django_models.ManyToManyField(Contingent)
     point_cost = django_models.IntegerField(default=0)
-    unity_type = django_models.ForeignKey(UnitType, on_delete=django_models.DO_NOTHING)
+    unit_type = django_models.ForeignKey(UnitType, on_delete=django_models.DO_NOTHING)
 
     def get_total_points(self):
         cost = 0
