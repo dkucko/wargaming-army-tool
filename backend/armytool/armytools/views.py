@@ -28,6 +28,21 @@ def get_unit_list(request):
     return JsonResponse(response)
 
 
+def get_unit_type_list(request):
+    response = {'Unit types': [{ut.name: ut.name} for ut in UnitType.objects.all()]}
+    return JsonResponse(response)
+
+
+def get_contingent_list(request):
+    response = {'Contingents': [{c.name: c.name} for c in Contingent.objects.all()]}
+    return JsonResponse(response)
+
+
+def get_contingent_type_list(request):
+    response = {'Contingent types': [{ct.name: ct.name} for ct in ContingentType.objects.all()]}
+    return JsonResponse(response)
+
+
 def get_army_list(request):
     response = {'Armies': [{a.name: a.name} for a in Army.objects.all()]}
     return JsonResponse(response)
