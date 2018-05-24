@@ -1,10 +1,11 @@
 import sys
 
 from collections import deque
+from PyQt5.QtCore import Qt, QItemSelectionModel, QItemSelection
 from PyQt5.QtGui import QStandardItemModel, QStandardItem
 from PyQt5.QtWidgets import QMainWindow, QApplication, QPushButton, \
     QLabel, QVBoxLayout, QHBoxLayout, QWidget, qApp, QListView, QSplitter, QStackedWidget, QFrame, QGroupBox, \
-    QFormLayout, QLineEdit, QComboBox, QSpinBox, QTreeView
+    QFormLayout, QLineEdit, QComboBox, QSpinBox, QTreeView, QAbstractItemView
 
 from rester import Rester, APIEnum
 
@@ -23,8 +24,10 @@ class EditScreen(QWidget):
         self.tree.setModel(self.model)
         self.data = self.rester.list_request(list(APIEnum))
         self.import_data(self.data)
+        self.tree.setSortingEnabled(False)
         self.tree.expandAll()
-        self.tree.setSortingEnabled(True)
+        self.tree.setSelectionMode(QAbstractItemView.SingleSelection)
+        self.tree.selectionModel().selectionChanged.connect(self.item_selected)
 
         self.init_ui()
 
@@ -35,8 +38,8 @@ class EditScreen(QWidget):
         left_layout = QFormLayout()
         tree_group_box = QGroupBox()
         self.search_field = QLineEdit()
-        self.search_field.editingFinished.connect(self.search_field_changed)
-        # self.search_field.textEdited.connect(self.search_field_changed)
+        # self.search_field.editingFinished.connect(self.search_field_changed)
+        self.search_field.textEdited.connect(self.search_field_changed)
         left_layout.addRow(QLabel('Search:'), self.search_field)
         tree_group_box.setLayout(left_layout)
 
@@ -49,14 +52,14 @@ class EditScreen(QWidget):
         splitter = QSplitter()
         splitter.addWidget(gb)
 
-        form_group_box = QGroupBox()
-        layout = QFormLayout()
-        layout.addRow(QLabel('Name:'), QLineEdit())
-        layout.addRow(QLabel('Model Type:'), QComboBox())
-        layout.addRow(QLabel('Point Cost:'), QSpinBox())
-        form_group_box.setLayout(layout)
+        self.form_group_box = QGroupBox()
+        # layout = QFormLayout()
+        # layout.addRow(QLabel('Name:'), QLineEdit())
+        # layout.addRow(QLabel('Model Type:'), QComboBox())
+        # layout.addRow(QLabel('Point Cost:'), QSpinBox())
+        # form_group_box.setLayout(layout)
 
-        splitter.addWidget(form_group_box)
+        splitter.addWidget(self.form_group_box)
 
         hbox.addWidget(splitter)
 
@@ -77,7 +80,6 @@ class EditScreen(QWidget):
 
     def search_field_changed(self):
         term = self.search_field.text()
-        print(term)
         data = {}
         for key, value_list in self.data.items():
             li = []
@@ -88,6 +90,19 @@ class EditScreen(QWidget):
             data[key] = li
 
         self.import_data(data)
+
+    def item_selected(self):
+        indexes = self.tree.selectedIndexes()
+        item = indexes[0]
+        item_name = item.data()
+        parent = item.parent()
+        layout = QFormLayout()
+        line_edit = QLineEdit()
+        line_edit.setText(item_name)
+        layout.addRow(QLabel('Name:'), line_edit)
+        self.form_group_box.setLayout(layout)
+
+
 
 
 class ArmyTool(QMainWindow):
