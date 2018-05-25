@@ -10,6 +10,17 @@ from PyQt5.QtWidgets import QMainWindow, QApplication, QPushButton, \
 from rester import Rester, APIEnum
 
 
+class TreeItem(QStandardItem):
+
+    def __init__(self, data: dict, parent=False):
+        super(TreeItem, self).__init__(data['name'])
+        self.data_dict = data
+        self.is_parent = parent
+
+    def get_data_dict(self):
+        return self.data_dict
+
+
 class EditScreen(QWidget):
 
     def __init__(self, rester: Rester):
@@ -53,11 +64,12 @@ class EditScreen(QWidget):
         splitter.addWidget(gb)
 
         self.form_group_box = QGroupBox()
-        # layout = QFormLayout()
-        # layout.addRow(QLabel('Name:'), QLineEdit())
-        # layout.addRow(QLabel('Model Type:'), QComboBox())
-        # layout.addRow(QLabel('Point Cost:'), QSpinBox())
-        # form_group_box.setLayout(layout)
+
+        self.form_group_vbox = QVBoxLayout()
+        self.form_group_layout = QFormLayout()
+        self.form_group_vbox.addLayout(self.form_group_layout)
+
+        self.form_group_box.setLayout(self.form_group_vbox)
 
         splitter.addWidget(self.form_group_box)
 
@@ -71,12 +83,11 @@ class EditScreen(QWidget):
         if root is None:
             root = self.model.invisibleRootItem()
         for key, value_list in data.items():
-            parent = QStandardItem(key)
+            parent = TreeItem({'name': key}, parent=True)
             parent.setEditable(False)
             root.appendRow([parent])
             for value in value_list:
-                for k in value.keys():
-                    parent.appendRow([QStandardItem(k)])
+                parent.appendRow([TreeItem(value)])
 
     def search_field_changed(self):
         term = self.search_field.text()
@@ -92,17 +103,25 @@ class EditScreen(QWidget):
         self.import_data(data)
 
     def item_selected(self):
+        self.form_group_box.layout().removeItem(self.form_group_layout)
         indexes = self.tree.selectedIndexes()
-        item = indexes[0]
-        item_name = item.data()
-        parent = item.parent()
-        layout = QFormLayout()
-        line_edit = QLineEdit()
-        line_edit.setText(item_name)
-        layout.addRow(QLabel('Name:'), line_edit)
-        self.form_group_box.setLayout(layout)
+        selected = indexes[0]
 
+        item = self.model.itemFromIndex(selected)
 
+        if item.is_parent:
+            return
+
+        data_dict = item.get_data_dict()
+        self.form_group_layout = QFormLayout()
+
+        for key, value in data_dict.items():
+            print(key, value)
+            line_edit = QLineEdit()
+            line_edit.setText(value)
+            self.form_group_layout.addRow(QLabel(key), line_edit)
+
+        self.form_group_box.layout().addLayout(self.form_group_layout)
 
 
 class ArmyTool(QMainWindow):
