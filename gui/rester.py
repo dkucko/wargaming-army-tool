@@ -36,12 +36,14 @@ class Rester:
         }
 
     def list_request(self, types):
-        if isinstance(types, list):
-            result = {}
-            for t in types:
+        if not isinstance(types, list):
+            types = [types]
+        result = {}
+        for t in types:
+            try:
                 response = requests.get(self.BASE_URI + self.URI_DICT[t]).json()
                 key = list(response.keys())[0]
                 result[key] = response[key]
-            return result
-
-        return json.loads(requests.get(self.BASE_URI + self.URI_DICT[types]).json())
+            except:
+                print('Error')
+        return result

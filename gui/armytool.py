@@ -116,7 +116,6 @@ class EditScreen(QWidget):
         self.form_group_layout = QFormLayout()
 
         for key, value in data_dict.items():
-            print(key, value)
             line_edit = QLineEdit()
             line_edit.setText(value)
             self.form_group_layout.addRow(QLabel(key), line_edit)
