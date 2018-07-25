@@ -4,7 +4,7 @@ from .models import *
 
 
 def get_equipment_list(request):
-    response = {'Equimpent': [
+    response = {'Equipment': [
         {'name': e.name,
          'point_cost': e.point_cost} for e in Equipment.objects.all()]}
     return JsonResponse(response)
@@ -13,7 +13,9 @@ def get_equipment_list(request):
 def get_model_list(request):
     response = {'Models': [
         {'name': m.name,
-         'model_type': str(m.model_type)} for m in Model.objects.all()]}
+         'model_type': str(m.model_type),
+         'equipment': [str(e.name) for e in m.equipment_set.all()]
+         } for m in Model.objects.all()]}
     return JsonResponse(response)
 
 

@@ -8,14 +8,16 @@ from PyQt5.QtWidgets import QMainWindow, QApplication, QPushButton, \
     QFormLayout, QLineEdit, QComboBox, QSpinBox, QTreeView, QAbstractItemView
 
 from rester import Rester, APIEnum
+from editwidgets import EditWidget, EquipmentEdit, get_edit_widget
 
 
 class TreeItem(QStandardItem):
 
-    def __init__(self, data: dict, parent=False):
+    def __init__(self, data: dict, typ: str, parent=False):
         super(TreeItem, self).__init__(data['name'])
         self.data_dict = data
         self.is_parent = parent
+        self.typ = typ
 
     def get_data_dict(self):
         return self.data_dict
@@ -25,6 +27,8 @@ class EditScreen(QWidget):
 
     def __init__(self, rester: Rester):
         super(EditScreen, self).__init__()
+        self.last_item_type = ''
+
         self.rester = rester
         self.tree = QTreeView()
         layout = QVBoxLayout()
@@ -60,20 +64,13 @@ class EditScreen(QWidget):
         gb = QGroupBox()
         gb.setLayout(vbox)
 
-        splitter = QSplitter()
-        splitter.addWidget(gb)
+        self.splitter = QSplitter()
+        self.splitter.addWidget(gb)
 
-        self.form_group_box = QGroupBox()
+        self.ew = EquipmentEdit()
+        self.splitter.addWidget(self.ew)
 
-        self.form_group_vbox = QVBoxLayout()
-        self.form_group_layout = QFormLayout()
-        self.form_group_vbox.addLayout(self.form_group_layout)
-
-        self.form_group_box.setLayout(self.form_group_vbox)
-
-        splitter.addWidget(self.form_group_box)
-
-        hbox.addWidget(splitter)
+        hbox.addWidget(self.splitter)
 
         self.setLayout(hbox)
 
@@ -83,11 +80,11 @@ class EditScreen(QWidget):
         if root is None:
             root = self.model.invisibleRootItem()
         for key, value_list in data.items():
-            parent = TreeItem({'name': key}, parent=True)
+            parent = TreeItem({'name': key}, '', parent=True)
             parent.setEditable(False)
             root.appendRow([parent])
             for value in value_list:
-                parent.appendRow([TreeItem(value)])
+                parent.appendRow([TreeItem(value, key)])
 
     def search_field_changed(self):
         term = self.search_field.text()
@@ -103,7 +100,6 @@ class EditScreen(QWidget):
         self.import_data(data)
 
     def item_selected(self):
-        self.form_group_box.layout().removeItem(self.form_group_layout)
         indexes = self.tree.selectedIndexes()
         selected = indexes[0]
 
@@ -112,15 +108,17 @@ class EditScreen(QWidget):
         if item.is_parent:
             return
 
+        #if item.typ != self.last_item_type:
+        self.ew.hide()
+        self.ew.destroy()
+        self.ew = get_edit_widget(item.typ, self.data)
+        self.splitter.addWidget(self.ew)
+
+        self.last_item_type = item.typ
+
         data_dict = item.get_data_dict()
-        self.form_group_layout = QFormLayout()
+        self.ew.load_data(data_dict)
 
-        for key, value in data_dict.items():
-            line_edit = QLineEdit()
-            line_edit.setText(value)
-            self.form_group_layout.addRow(QLabel(key), line_edit)
-
-        self.form_group_box.layout().addLayout(self.form_group_layout)
 
 
 class ArmyTool(QMainWindow):
