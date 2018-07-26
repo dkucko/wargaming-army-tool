@@ -69,11 +69,14 @@ class PlayerArmy(django_models.Model):
 
 class ContingentType(django_models.Model):
     name = django_models.CharField(max_length=200)
+    command_point_bonus = django_models.IntegerField(default=0)
+
+    def __str__(self):
+        return self.name
 
 
 class Contingent(django_models.Model):
     name = django_models.CharField(max_length=200)
-    command_point_bonus = django_models.IntegerField(default=0)
     armies = django_models.ManyToManyField(Army)
     contingent_type = django_models.ForeignKey(ContingentType, on_delete=django_models.DO_NOTHING)
 
@@ -102,7 +105,7 @@ class UnitTypeMinMax(django_models.Model):
     contingent_types = django_models.ManyToManyField(ContingentType)
 
     def __str__(self):
-        return f'{str(self.unit_type): {self.min}-{self.max}}'
+        return f'{str(self.unit_type)}: {self.min}-{self.max}'
 
 
 class Unit(django_models.Model):
