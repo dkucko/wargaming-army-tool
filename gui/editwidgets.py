@@ -35,6 +35,7 @@ class EquipmentEdit(EditWidget):
     def load_data(self, data):
         self.name_edit.setText(str(data['name']))
         self.point_cost_edit.setValue(data['point_cost'])
+        self.pk = data['id']
 
 
 class ModelEdit(EditWidget):
@@ -52,6 +53,7 @@ class ModelEdit(EditWidget):
 
     def load_data(self, data):
         self.name_edit.setText(str(data['name']))
+        self.pk = data['id']
         for i, e in enumerate(data['equipment']):
             try:
                 self.equipment_edit_list[i]
@@ -70,5 +72,5 @@ class ModelEdit(EditWidget):
 def get_edit_widget(typ, data):
     if typ == 'Models':
         return ModelEdit(data)
-    elif typ == 'Equipment':
+    elif typ == 'Equipment' or typ == 'Model types':
         return EquipmentEdit()
